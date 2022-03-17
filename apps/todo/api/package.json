@@ -1,0 +1,9 @@
+{
+  "name": "@appr/todo-api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {},
+  "author": "Evan Bremer",
+  "license": "MIT"
+}

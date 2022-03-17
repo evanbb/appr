@@ -1,0 +1,12 @@
+{
+  "name": "@appr/root",
+  "private": true,
+  "description": "Monorepo root for @appr",
+  "scripts": {
+    "build": "rollup -c",
+    "test": "jest"
+  },
+  "keywords": [],
+  "author": "Evan Bremer",
+  "license": "MIT"
+}
