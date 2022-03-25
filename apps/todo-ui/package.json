@@ -1,5 +1,5 @@
 {
-  "name": "ui",
+  "name": "@appr/apps--todo-ui",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -19,8 +19,7 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "test": "react-scripts test"
   },
   "eslintConfig": {
     "extends": [

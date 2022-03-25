@@ -2,9 +2,14 @@
   "name": "@appr/root",
   "private": true,
   "description": "Monorepo root for @appr",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
   "scripts": {
-    "build": "rollup -c",
-    "test": "jest"
+    "build": "yarn workspaces run build",
+    "start": "yarn workspaces run start",
+    "test": "yarn workspaces run test"
   },
   "keywords": [],
   "author": "Evan Bremer",

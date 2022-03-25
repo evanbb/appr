@@ -1,16 +1,15 @@
 {
-  "name": "@appr/domain",
-  "version": "0.0.1",
+  "name": "@appr/apps--todo-api",
+  "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "rollup -c",
-    "start": "rollup -c -w",
+    "build": "tsc -b",
+    "start": "tsc -b -w",
     "test": "jest"
   },
   "devDependencies": {
     "jest": "^27.5.1",
-    "rollup": "^2.70.1",
     "typescript": "^4.6.3"
   },
   "keywords": [],
