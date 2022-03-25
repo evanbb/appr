@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "tsc -b",
-    "start": "tsc -b -w",
+    "build": "rollup -c",
+    "start": "rollup -c -w",
     "test": "jest"
   },
   "devDependencies": {
