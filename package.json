@@ -1,4 +1,18 @@
 {
-  "name": "appr",
-  "packageManager": "yarn@3.2.0"
+  "name": "@appr/root",
+  "private": true,
+  "description": "Monorepo root for @appr",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "clean": "rm -rf yarn.lock node_modules packages/*/node_modules apps/*/node_modules packages/*/dist apps/*/dist && yarn cache clean --force",
+    "build": "yarn workspaces run build",
+    "start": "yarn workspaces run start",
+    "test": "yarn workspaces run test"
+  },
+  "keywords": [],
+  "author": "Evan Bremer",
+  "license": "MIT"
 }
