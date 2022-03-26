@@ -1,25 +1,36 @@
-import ts from '@rollup/plugin-typescript';
-import nodemon from 'nodemon';
+import ts from "@rollup/plugin-typescript";
+import nodemon from "nodemon";
 
-const isWatch = process.env.ROLLUP_WATCH === 'true';
-const api = function api({ outputDir = 'dist/index.js' }) {
+function moduleWatcher({ moduleIds }) {
+  return {
+    name: "rollup-plugin-module-watcher",
+    buildStart() {
+      for (const id of moduleIds) {
+        this.addWatchFile(require.resolve(id));
+      }
+    },
+  };
+}
+
+const isWatch = process.env.ROLLUP_WATCH === "true";
+const api = function api({ outputDir = "dist/index.js" } = {}) {
   let mon = null;
   let restarting = false;
 
   return {
-    name: 'rollup-plugin-api',
+    name: "rollup-plugin-api",
 
     options() {
       // start the api
       if (!mon) {
-        console.log('Starting the app!');
+        console.log("Starting the app!");
         mon = nodemon(outputDir);
 
-        mon.on('restart', function () {
+        mon.on("restart", function () {
           restarting = true;
         });
 
-        mon.on('exit', function () {
+        mon.on("exit", function () {
           if (!restarting) {
             process.kill(process.pid);
             return;
@@ -33,12 +44,16 @@ const api = function api({ outputDir = 'dist/index.js' }) {
 };
 
 export default {
-  input: 'src/index.ts',
+  input: "src/index.ts",
   output: {
-    dir: 'dist',
-    format: 'cjs',
+    dir: "dist",
+    format: "cjs",
   },
-  plugins: [ts(), isWatch ? api({ entry: 'dist/index.js' }) : null].filter(
-    Boolean
-  ),
+  plugins: [
+    ts(),
+    isWatch ? api() : null,
+    moduleWatcher({
+      moduleIds: ["@appr/core", "@appr/domain"],
+    }),
+  ].filter(Boolean),
 };

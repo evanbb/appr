@@ -1,11 +1,12 @@
-import ts from '@rollup/plugin-typescript'
+import ts from "@rollup/plugin-typescript";
 
 export default {
-    input: 'src/index.ts',
-    output: {
-        dir: 'dist'
-    },
-    plugins: [
-        ts()
-    ]
-}
+  input: "src/index.ts",
+  output: {
+    dir: "dist",
+    format: "cjs",
+  },
+  plugins: [
+    ts()
+  ],
+};

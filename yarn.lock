@@ -31,6 +31,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@appr/apps--todo-api@workspace:apps/todo-api"
   dependencies:
+    "@appr/core": "*"
+    "@appr/domain": "*"
     "@types/express": ^4.17.13
     "@types/nodemon": ^1.19.1
     express: ^4.17.3
@@ -60,7 +62,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@appr/core@workspace:packages/core":
+"@appr/core@*, @appr/core@workspace:packages/core":
   version: 0.0.0-use.local
   resolution: "@appr/core@workspace:packages/core"
   dependencies:
@@ -71,7 +73,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@appr/domain@workspace:packages/domain":
+"@appr/domain@*, @appr/domain@workspace:packages/domain":
   version: 0.0.0-use.local
   resolution: "@appr/domain@workspace:packages/domain"
   dependencies:

@@ -17,6 +17,8 @@
   "author": "Evan Bremer",
   "license": "MIT",
   "dependencies": {
+    "@appr/core": "*",
+    "@appr/domain": "*",
     "@types/express": "^4.17.13",
     "@types/nodemon": "^1.19.1",
     "express": "^4.17.3",

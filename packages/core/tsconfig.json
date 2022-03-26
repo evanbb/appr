@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "declaration": true,
+    "declarationDir": "dist",
+    "emitDeclarationOnly": true,
+    "esModuleInterop": true,
+    "lib": ["esnext"],
+    "outDir": "dist",
+    "strict": true
+  },
+  "exclude": ["dist", "node_modules", "../../node_modules"],
+  "include": ["src"]
+}
