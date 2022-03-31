@@ -7,7 +7,7 @@ const app = express();
 app.use(cors());
 
 app.get("/:id", (req, res) => {
-  res.send({ value, body: req.params.id });
+  res.send({ value, something: 'that is incredibly special', body: req.params.id });
 });
 
 app.listen(8000, () => {

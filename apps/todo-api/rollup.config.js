@@ -2,14 +2,12 @@ import ts from "@rollup/plugin-typescript";
 import nodemon from "nodemon";
 import path from "path";
 
-function moduleWatcher({ moduleIds }) {
+function moduleWatcher({ paths }) {
   return {
     name: "rollup-plugin-module-watcher",
     buildStart() {
-      for (const id of moduleIds) {
-        const resolvedModule = require.resolve(id);
-        // watch the directory in case the file hasn't been written yet
-        this.addWatchFile(path.dirname(resolvedModule));
+      for (const p of paths) {
+        this.addWatchFile(p);
       }
     },
   };
@@ -58,7 +56,10 @@ export default {
     }),
     isWatch ? api() : null,
     moduleWatcher({
-      moduleIds: ["@appr/core", "@appr/domain"],
+      paths: [
+        path.resolve(__dirname, "../../packages/core/dist/"),
+        path.resolve(__dirname, "../../packages/domain/dist/"),
+      ],
     }),
   ].filter(Boolean),
 };
