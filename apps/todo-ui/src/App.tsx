@@ -1,12 +1,12 @@
+import './index.css'
 import { useEffect, useState } from "react";
 import version from "./version";
+import TodoList from './todos/TodoList';
 
 function makeGo(stateSetterCallback: (value: string) => void, retryCount = 0) {
   const retry = () => makeGo(stateSetterCallback, retryCount + 1);
 
-  fetch("http://localhost:8000/something", {
-    credentials: "same-origin",
-  })
+  fetch("http://localhost:8000/something")
     .then((response) => response.json())
     .then((response) => {
       stateSetterCallback(JSON.stringify(response, null, 2));
@@ -27,8 +27,11 @@ function App() {
 
   return (
     <>
-      <pre>{message}</pre>
-      <pre>{JSON.stringify({ version }, null, 2)}</pre>
+      <header>{message}</header>
+      <main>
+        <TodoList />
+      </main>
+      <footer>Version: { version }</footer>
     </>
   );
 }
