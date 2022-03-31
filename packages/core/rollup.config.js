@@ -7,6 +7,8 @@ export default {
     format: "cjs",
   },
   plugins: [
-    ts()
+    ts({
+      noEmitOnError: !process.env.ROLLUP_WATCH,
+    }),
   ],
 };

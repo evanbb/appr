@@ -19,8 +19,10 @@
   "dependencies": {
     "@appr/core": "*",
     "@appr/domain": "*",
+    "@types/cors": "^2.8.12",
     "@types/express": "^4.17.13",
     "@types/nodemon": "^1.19.1",
+    "cors": "^2.8.5",
     "express": "^4.17.3",
     "nodemon": "^2.0.15"
   }

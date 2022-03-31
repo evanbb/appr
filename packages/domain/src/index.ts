@@ -1,3 +1,3 @@
-import { foobar } from '@appr/core'
+import { foobar } from '@appr/core';
 
-export default `i am the domain, and foobar is ${foobar}`
+export default `i am the domain, and foobar is ${foobar}`;
