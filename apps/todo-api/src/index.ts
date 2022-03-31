@@ -6,8 +6,8 @@ const app = express();
 
 app.use(cors());
 
-app.get("/api/root", (req, res) => {
-  res.send({ value });
+app.get("/:id", (req, res) => {
+  res.send({ value, body: req.params.id });
 });
 
 app.listen(8000, () => {

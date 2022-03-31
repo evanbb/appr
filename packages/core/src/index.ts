@@ -1,3 +1,3 @@
 export default 'i am core'
 
-export const foobar = 'fllydddsaadsb';
+export const foobar = 'fly';
