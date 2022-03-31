@@ -20,10 +20,21 @@ function makeGo(stateSetterCallback: (value: string) => void, retryCount = 0) {
     });
 }
 
+function useWebSockets() {
+  useEffect(() => {
+    const webSocket = new WebSocket('ws://localhost:8000/notifications');
+
+    return () => {
+      webSocket.close()
+    }
+  }, [])
+}
+
 function App() {
   const [message, setMessage] = useState("");
 
   useEffect(() => makeGo(setMessage));
+  useWebSockets();
 
   return (
     <>

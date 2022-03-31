@@ -38,7 +38,7 @@ function TodoItem({ todo: { title, id }, onRemove }: TodoItemProps) {
     if (isDone) {
       onRemove(id);
     }
-  }, [id, isDone]);
+  }, [id, isDone, onRemove]);
 
   return (
     <label>
@@ -85,7 +85,7 @@ export default function TodoList() {
     setTodos((todos) => todos.filter((todo) => todo.id !== id));
   };
 
-  const onSubmit = (todo: Todo) => setTodos((todos) => todos.concat(todo));
+  const onSubmit = (todo: Todo) => (postTodo(todo), setTodos((todos) => todos.concat(todo)));
 
   return (
     <>
@@ -93,4 +93,14 @@ export default function TodoList() {
       <Todos todos={todos} onRemove={onRemove} />
     </>
   );
+}
+
+function postTodo(todo: Todo) {
+  fetch("http://localhost:8000/todos", {
+    method: "POST",
+    body: JSON.stringify(todo),
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
 }
