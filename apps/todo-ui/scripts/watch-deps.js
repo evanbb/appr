@@ -11,7 +11,9 @@ watcher
   .on("all", function () {
     fs.writeFileSync(
       path.resolve(__dirname, "../src/version.ts"),
-      `export default ${Date.now()}`,
+      `const version = ${Date.now()};
+export default version;
+`,
       "utf-8"
     );
   });

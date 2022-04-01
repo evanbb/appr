@@ -1,1 +1,2 @@
-export default 1648766116798
+const version = 1648778723330;
+export default version;
