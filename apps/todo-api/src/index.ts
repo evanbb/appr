@@ -1,10 +1,18 @@
-import EventEmitter from "node:events";
-import TodoRepositoryImpl from "./infrastructure/TodoRepository";
-import Application from "./application";
-import Presentation from "./presentation";
-
-const changeEmitter = new EventEmitter();
+import infrastructure, {
+  Presentation,
+  TodoRepositoryImpl,
+} from 'this/infrastructure';
+import application, { Application } from 'this/application';
+import domain from 'this/domain';
 
 const repo = new TodoRepositoryImpl();
 const todoApp = new Application(repo);
 new Presentation(todoApp).start();
+
+function onion(infra: any) {
+  return {
+    start: function () {},
+  };
+}
+
+onion(infrastructure(application(domain()))).start();

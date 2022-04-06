@@ -1,5 +1,5 @@
-import { TodoRepository } from "../application";
-import Todo from "../domain/Todo";
+import { type TodoRepository } from 'this/application';
+import { type Todo } from 'this/domain';
 
 export default class TodoRepositoryImpl implements TodoRepository {
   readonly #todos: Map<string, Todo> = new Map();

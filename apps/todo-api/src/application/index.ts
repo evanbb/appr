@@ -1,7 +1,7 @@
-import { EventEmitter } from "ws";
-import Todo from "../domain/Todo";
-import { CreateTodo } from "./commands";
-export * from "./commands";
+import { EventEmitter } from 'ws';
+import { Todo } from '../domain/Todo';
+import { CreateTodo } from './commands';
+export * from './commands';
 
 export interface TodoRepository {
   get(): Todo[];
@@ -11,7 +11,9 @@ export interface TodoRepository {
   update(todo: Todo): void;
 }
 
-export default class Application {
+export default function application(domain: any) {}
+
+export class Application {
   readonly #repo: TodoRepository;
   readonly #changeEmitter: EventEmitter = new EventEmitter();
 
@@ -24,7 +26,7 @@ export default class Application {
 
     this.#repo.add(todo);
 
-    this.#changeEmitter.emit('update', this.#repo.get())
+    this.#changeEmitter.emit('update', this.#repo.get());
   }
 
   getAllTodos() {

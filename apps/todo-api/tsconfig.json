@@ -1,11 +1,17 @@
 {
   "compilerOptions": {
+    "baseUrl": "src",
     "esModuleInterop": true,
     "lib": ["esnext"],
     "moduleResolution": "node",
     "outDir": "dist",
     "strict": true,
-    "target": "ES2015"
+    "target": "ES2015",
+    "paths": {
+      "this/application": ["application"],
+      "this/domain": ["domain"],
+      "this/infrastructure": ["infrastructure"],
+    }
   },
   "exclude": ["dist", "node_modules", "../../node_modules"],
   "include": ["src"]
