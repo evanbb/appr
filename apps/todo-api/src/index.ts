@@ -1,9 +1,9 @@
+import application, { Application } from 'this/application';
+import domain from 'this/domain';
 import infrastructure, {
   Presentation,
   TodoRepositoryImpl,
 } from 'this/infrastructure';
-import application, { Application } from 'this/application';
-import domain from 'this/domain';
 
 const repo = new TodoRepositoryImpl();
 const todoApp = new Application(repo);

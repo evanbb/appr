@@ -1,7 +1,7 @@
-import { EventEmitter } from 'ws';
-import { Todo } from '../domain/Todo';
-import { CreateTodo } from './commands';
 export * from './commands';
+import { CreateTodo } from './commands';
+import { Todo } from 'this/domain';
+import { EventEmitter } from 'ws';
 
 export interface TodoRepository {
   get(): Todo[];
@@ -11,7 +11,16 @@ export interface TodoRepository {
   update(todo: Todo): void;
 }
 
-export default function application(domain: any) {}
+export interface ApplicationDependencies {}
+
+type ApplicationFactory = {} extends ApplicationDependencies
+  ? (domain: any, dependencies?: ApplicationDependencies) => void
+  : (domain: any, dependencies: ApplicationDependencies) => void;
+
+const application: ApplicationFactory = function application(
+  domain: any,
+  dependencies?: ApplicationDependencies
+) {};
 
 export class Application {
   readonly #repo: TodoRepository;
@@ -37,3 +46,5 @@ export class Application {
     this.#changeEmitter.on('update', callback);
   }
 }
+
+export default application;
