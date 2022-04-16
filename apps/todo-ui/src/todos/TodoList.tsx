@@ -1,4 +1,4 @@
-import { type FormEventHandler, useEffect, useState, useRef } from "react";
+import { type FormEventHandler, useEffect, useState, useRef } from 'react';
 
 interface CreateTodo {
   title: string;
@@ -57,7 +57,7 @@ interface TodoFormProps {
 }
 
 function TodoForm({ onSubmit }: TodoFormProps) {
-  const [value, setValue] = useState("");
+  const [value, setValue] = useState('');
 
   const onSubmitImpl: FormEventHandler<HTMLFormElement> = (e) => {
     e.preventDefault();
@@ -79,24 +79,24 @@ function TodoForm({ onSubmit }: TodoFormProps) {
 
 function useWebSockets(onTodosUpdated: (todos: Todo[]) => void) {
   const socket = useRef<WebSocket | null>(null);
-  
+
   useEffect(() => {
-    socket.current = new WebSocket("ws://localhost:8000/notifications");
+    socket.current = new WebSocket('ws://localhost:8000/notifications');
     return () => {
-      socket.current!.close()
-    }
-  }, [])
-  
+      socket.current!.close();
+    };
+  }, []);
+
   useEffect(() => {
     function messageHandler(message: MessageEvent) {
-      const todos = JSON.parse(message.data) as Todo[]
+      const todos = JSON.parse(message.data) as Todo[];
       onTodosUpdated(todos);
     }
 
-    socket.current!.addEventListener("message", messageHandler);
+    socket.current!.addEventListener('message', messageHandler);
 
     return () => {
-      socket.current!.removeEventListener("message", messageHandler);
+      socket.current!.removeEventListener('message', messageHandler);
     };
   }, [onTodosUpdated]);
 }
@@ -107,10 +107,16 @@ export default function TodoList() {
   useWebSockets(setTodos);
 
   const onRemove = (id: string) => {
-    console.log('removing id', id)
+    console.log('removing id', id);
   };
 
   const onSubmit = (todo: CreateTodo) => postTodo(todo);
+
+  useEffect(() => {
+    postTodo({
+      title: `this was created at ${new Date().toLocaleString()}`,
+    });
+  }, [postTodo]);
 
   return (
     <>
@@ -121,11 +127,11 @@ export default function TodoList() {
 }
 
 function postTodo(todo: CreateTodo) {
-  fetch("http://localhost:8000/todos", {
-    method: "POST",
+  fetch('http://localhost:8000/todos', {
+    method: 'POST',
     body: JSON.stringify(todo),
     headers: {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
     },
   });
 }

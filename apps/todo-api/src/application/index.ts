@@ -2,15 +2,9 @@ export * from './commands';
 import { CreateTodo } from './commands';
 import { Todo } from 'this/domain';
 import { EventEmitter } from 'ws';
+import { TodoRepository } from './types';
 
-export interface TodoRepository {
-  get(): Todo[];
-  find(id: string): Todo | null;
-  add(todo: Todo): void;
-  delete(id: string): void;
-  update(todo: Todo): void;
-}
-
+export { TodoRepository };
 export interface ApplicationDependencies {}
 
 type ApplicationFactory = {} extends ApplicationDependencies
