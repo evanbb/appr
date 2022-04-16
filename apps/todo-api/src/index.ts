@@ -1,12 +1,20 @@
+import Kafka from 'infrastructure/Kafka';
+import CommandConsumer from 'infrastructure/persistence/CommandConsumer';
 import application, { Application } from 'this/application';
 import domain from 'this/domain';
 import infrastructure, {
   Presentation,
-  TodoRepositoryImpl,
+  TodoCommandRepositoryImpl,
+  TodoQueryRepositoryImpl,
 } from 'this/infrastructure';
 
-const repo = new TodoRepositoryImpl();
-const todoApp = new Application(repo);
+const todoApp = new Application(
+  new TodoCommandRepositoryImpl(
+    Kafka.producer,
+    new CommandConsumer(Kafka.commandConsumer, Kafka.producer)
+  ),
+  new TodoQueryRepositoryImpl(Kafka.eventConsumer)
+);
 new Presentation(todoApp).start();
 
 function onion(infra: any) {

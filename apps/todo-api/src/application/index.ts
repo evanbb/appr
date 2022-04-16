@@ -1,10 +1,10 @@
 export * from './commands';
-import { CreateTodo } from './commands';
+import { ChangeTitle, CreateTodo, MarkWhetherDone } from './commands';
 import { Todo } from 'this/domain';
 import { EventEmitter } from 'ws';
-import { TodoRepository } from './types';
+import { TodoCommandRepository, TodoQueryRepository } from './types';
 
-export { TodoRepository };
+export { TodoCommandRepository, TodoQueryRepository };
 export interface ApplicationDependencies {}
 
 type ApplicationFactory = {} extends ApplicationDependencies
@@ -17,28 +17,40 @@ const application: ApplicationFactory = function application(
 ) {};
 
 export class Application {
-  readonly #repo: TodoRepository;
+  readonly #commandRepo: TodoCommandRepository;
+  readonly #queryRepo: TodoQueryRepository;
   readonly #changeEmitter: EventEmitter = new EventEmitter();
 
-  constructor(repo: TodoRepository) {
-    this.#repo = repo;
-  }
-
-  createTodo(createTodo: CreateTodo) {
-    const todo = Todo.createNew(createTodo.title);
-
-    this.#repo.add(todo);
-
-    this.#changeEmitter.emit('update', this.#repo.get());
+  constructor(
+    commandRepo: TodoCommandRepository,
+    queryRepo: TodoQueryRepository
+  ) {
+    this.#commandRepo = commandRepo;
+    this.#queryRepo = queryRepo;
+    this.#queryRepo.onUpdate((todos) =>
+      this.#changeEmitter.emit('update', todos)
+    );
   }
 
   getAllTodos() {
-    return this.#repo.get();
+    return this.#queryRepo.getAll();
   }
 
-  onUpdate(callback: (allTodos: Todo[]) => void) {
-    this.#changeEmitter.on('update', callback);
+  createTodo(createTodo: CreateTodo) {
+    this.#commandRepo.commit(createTodo);
   }
+
+  changeTitle(changeTitle: ChangeTitle) {
+    this.#commandRepo.commit(changeTitle);
+  }
+
+  markTodoDone(command: MarkWhetherDone) {
+    this.#commandRepo.commit(command);
+  }
+
+  onUpdate = (callback: (allTodos: Readonly<Todo>[]) => void) => {
+    this.#changeEmitter.on('update', callback);
+  };
 }
 
 export default application;

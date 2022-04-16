@@ -13,8 +13,8 @@ export default class TodoController {
   }
 
   createTodo = (req: any, res: any) => {
-    const createTodo = req.body;
-    this.#todoApp.createTodo(createTodo);
+    const createTodo = req.body as { title: string };
+    this.#todoApp.createTodo({ type: 'CreateTodo', ...createTodo, key: '' });
     res.sendStatus(202);
   };
 

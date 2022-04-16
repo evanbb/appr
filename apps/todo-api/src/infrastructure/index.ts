@@ -1,5 +1,6 @@
 export * from './presentation';
-export { default as TodoRepositoryImpl } from './persistence/TodoRepository';
+export { TodoCommandRepositoryImpl } from './persistence/CommandRepository';
+export { TodoQueryRepositoryImpl } from './persistence/QueryRepository';
 export * from './Kafka';
 
 export default function infrastructure(application: any) {
