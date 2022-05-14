@@ -15,9 +15,27 @@ export class Presentation {
     this.#todoApp = todoApp;
 
     const expressApp = (this.#expressApp = express());
+
+    expressApp.get('/foo/:bar', (req, res) => {
+      
+    });
+
     expressApp.use(cors());
     expressApp.use(bodyParser.json());
-    new TodoController(expressApp, todoApp);
+
+    const ctrl = TodoController(todoApp);
+
+    const classMethods = Object.getOwnPropertyNames(TodoController.prototype)
+      .concat(Object.keys(ctrl))
+      .filter((x) => x !== 'constructor');
+
+    for (const route of classMethods) {
+      const [method, path] = route.split(' ');
+      (expressApp as any)[method.toLowerCase()](
+        path,
+        (ctrl as any)[route].bind(ctrl)
+      );
+    }
   }
   start() {
     const server = this.#expressApp.listen(8000, () => {
