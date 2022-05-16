@@ -114,7 +114,7 @@ declare const Route: any;
 const FooController = {
   async [
     [Post<PostDto>()]
-    [ProducesResponseType(200)]
+    [ProducesResponseType(201)]
     [ProducesResponseType(400)]
     [Route('/todos')]
   ] (
