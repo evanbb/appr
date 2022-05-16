@@ -124,7 +124,6 @@ const FooController = {
     // read stuff off the request
     // do async stuff
     // write to the response
-    // should we instead return an object here? it's a good practice...
   },
 
   async [
@@ -153,7 +152,6 @@ const FooController = {
     [Put()]
     [ProducesResponseType(200)]
     [ProducesResponseType(400)]
-    [ProducesResponseType(404)]
     [Route('/todos/:id')]
   ] (
     request: TrustMeThisWillHaveTheRightType,
