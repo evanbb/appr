@@ -2,7 +2,7 @@ import express from 'express';
 import ws from 'ws';
 import cors from 'cors';
 import bodyParser from 'body-parser';
-import TodoController from './rest/TodoController';
+import TodoControllerFactory from './rest/TodoController';
 import { Application } from 'this/application';
 
 export default function presentation() {}
@@ -23,13 +23,9 @@ export class Presentation {
     expressApp.use(cors());
     expressApp.use(bodyParser.json());
 
-    const ctrl = TodoController(todoApp);
+    const ctrl = TodoControllerFactory(todoApp);
 
-    const classMethods = Object.getOwnPropertyNames(TodoController.prototype)
-      .concat(Object.keys(ctrl))
-      .filter((x) => x !== 'constructor');
-
-    for (const route of classMethods) {
+    for (const route in ctrl) {
       const [method, path] = route.split(' ');
       (expressApp as any)[method.toLowerCase()](
         path,

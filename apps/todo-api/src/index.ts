@@ -1,8 +1,8 @@
-import Kafka from 'infrastructure/Kafka';
-import CommandConsumer from 'infrastructure/persistence/CommandConsumer';
+import CommandConsumer from './infrastructure/persistence/CommandConsumer';
 import application, { Application } from 'this/application';
 import domain from 'this/domain';
 import infrastructure, {
+  Kafka,
   Presentation,
   TodoCommandRepositoryImpl,
   TodoQueryRepositoryImpl,
