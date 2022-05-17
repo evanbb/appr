@@ -32,10 +32,7 @@ function middleware(first: Configurator): typeof middleware {
 }
 
 function Get(): any {
-  return middleware((data) => {
-    data.methods = data.methods ? [...data.methods, 'GET'] : ['GET'];
-    return data;
-  });
+  return function () {} as unknown as string;
 }
 
 function Post<Dto = never>(): any {
@@ -92,9 +89,16 @@ function TodoControllerFactory(application: Application): Controller {
       response.send(application.getAllTodos());
     },
 
+    async [`
+    ${ Get() }
+    ${ ProducesResponseType(200) }
+    ${ ProducesResponseType(404) }
+    ${ Route('/todos/foo') }
+   `](request, response) {},
+
     async [Get()(ProducesResponseType(200))(ProducesResponseType(400))(
       ProducesResponseType(404)
-    )(Route('/todos/:id'))](request, response) {
+    )(Route('/todos/:id'))`foo`](request, response) {
       response.send(application.getAllTodos());
     },
 
