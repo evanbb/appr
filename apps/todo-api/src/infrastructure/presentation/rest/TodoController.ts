@@ -31,30 +31,36 @@ function middleware(first: Configurator): typeof middleware {
   return output;
 }
 
-function Get(): any {
-  return function () {} as unknown as string;
-}
-
-function Post<Dto = never>(): any {
-  return middleware(noop);
-}
-
-function Route(route: string): any {
+function Get(): typeof middleware & string & number {
   return middleware((data) => {
-    data.route = route;
-  });
+    data.method = 'GET';
+  }) as typeof middleware & string & number;
 }
 
-function ProducesResponseType(statusCode: number): any {
+function Post<Dto = never>(): typeof middleware & string & number {
+  return middleware(noop) as typeof middleware & string & number;
+}
+
+function Route(route: string): typeof middleware & string & number {
+  const rs = middleware((data) => {
+    data.route = route;
+  }) as typeof middleware & string & number;
+
+  return rs;
+}
+
+function ProducesResponseType(
+  statusCode: number
+): typeof middleware & string & number {
   return middleware((data) => {
     data.producesResponseType = data.producesResponseType
       ? [...data.producesResponseType, statusCode]
       : [statusCode];
-  });
+  }) as typeof middleware & string & number;
 }
 
 type Handler<T extends string> = (
-  request: Request<RouteParameters<T>>,
+  request: Request<RouteParameters<T>, any, any>,
   response: Response
 ) => void | Promise<void>;
 
@@ -85,24 +91,22 @@ function TodoControllerFactory(application: Application): Controller {
       response.sendStatus(202);
     },
 
-    async [Get()](request, response) {
+    async [[Get()][Route('/')]](request, response) {
       response.send(application.getAllTodos());
     },
 
-    async [`
-    ${ Get() }
-    ${ ProducesResponseType(200) }
-    ${ ProducesResponseType(404) }
-    ${ Route('/todos/foo') }
-   `](request, response) {},
+    async [`{
+    ${Get()}
+    ${ProducesResponseType(200)}
+    ${ProducesResponseType(404)}
+    ${Route('/todos/foo')}
+    }`](request, response) {},
 
     async [Get()(ProducesResponseType(200))(ProducesResponseType(400))(
       ProducesResponseType(404)
-    )(Route('/todos/:id'))`foo`](request, response) {
+    )(Route('/todos/:id'))](request, response) {
       response.send(application.getAllTodos());
     },
-
-    async [Post()](request, response) {},
   };
 }
 
