@@ -2,7 +2,9 @@ import express from 'express';
 import ws from 'ws';
 import cors from 'cors';
 import bodyParser from 'body-parser';
-import TodoControllerFactory from './rest/TodoController';
+import TodoControllerFactory, {
+  ControllerBuilder,
+} from './rest/TodoController';
 import { Application } from 'this/application';
 
 export default function presentation() {}
@@ -16,21 +18,16 @@ export class Presentation {
 
     const expressApp = (this.#expressApp = express());
 
-    expressApp.get('/foo/:bar', (req, res) => {
-      
-    });
-
     expressApp.use(cors());
     expressApp.use(bodyParser.json());
 
-    const ctrl = TodoControllerFactory(todoApp);
+    const routeMetas = TodoControllerFactory(todoApp)(
+      new ControllerBuilder()
+    ).Build();
 
-    for (const route in ctrl) {
-      const [method, path] = route.split(' ');
-      (expressApp as any)[method.toLowerCase()](
-        path,
-        (ctrl as any)[route].bind(ctrl)
-      );
+    for (const routeMeta of routeMetas) {
+      const { handler, method, route } = routeMeta;
+      (expressApp as any)[method.toLowerCase()](route, handler);
     }
   }
   start() {

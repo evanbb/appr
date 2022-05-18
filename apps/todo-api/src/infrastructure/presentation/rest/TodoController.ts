@@ -33,7 +33,11 @@ interface ControllerBuilderRouteHandler<
   Route extends string = '',
   Dto = never
 > {
-  Handler(handler: Handler<Route, Dto>): ControllerBuilderMethods;
+  Handler(handler: Handler<Route, Dto>): ControllerBuilderMethods & ControllerBuilderFinalizer;
+}
+
+interface ControllerBuilderFinalizer {
+  Build(): RouteMetadata[]
 }
 
 interface RouteMetadata {
@@ -45,10 +49,11 @@ interface RouteMetadata {
 
 //#endregion
 
-class ControllerBuilder<Route extends string = '', Dto = never>
+export class ControllerBuilder<Route extends string = '', Dto = never>
   implements
     ControllerBuilderMetadata<Dto>,
-    ControllerBuilderRouteHandler<Route, Dto>
+    ControllerBuilderRouteHandler<Route, Dto>,
+    ControllerBuilderFinalizer
 {
   #routes: RouteMetadata[] = [];
   #current: Partial<RouteMetadata> = {};
@@ -119,11 +124,11 @@ class ControllerBuilder<Route extends string = '', Dto = never>
    * Sets the @param handler this endpoint will invoke if the route matches
    * @returns @this
    */
-  Handler(handler: Handler<Route, Dto>): ControllerBuilderMethods {
+  Handler(handler: Handler<Route, Dto>): ControllerBuilderMethods & ControllerBuilderFinalizer {
     this.#current.handler = handler;
     this.#routes.push(this.#current as RouteMetadata);
     this.#initializeCurrent();
-    return this as unknown as ControllerBuilderMethods;
+    return this as unknown as ControllerBuilderMethods & ControllerBuilderFinalizer;
   }
 
   /**
@@ -140,13 +145,13 @@ class ControllerBuilder<Route extends string = '', Dto = never>
 interface ControllerFactory {
   (...prams: any[]): (
     builder: ControllerBuilderMethods
-  ) => ControllerBuilderMethods;
+  ) => ControllerBuilderFinalizer;
 }
 
 const factory: ControllerFactory = (application: Application) => (builder) =>
   builder
     .Post<CreateTodo>()
-    .Route('/todos/:id')
+    .Route('/todos')
     .Handler(function CreateTodo(request, response) {
       const createTodo = request.body;
       application.createTodo({ ...createTodo, key: '', type: 'CreateTodo' });
