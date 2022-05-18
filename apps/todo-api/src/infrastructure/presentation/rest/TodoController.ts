@@ -8,108 +8,154 @@ import {
 
 //#region utils
 
-const noop = () => {};
-
-interface Configurator {
-  (data: any): any;
+interface Handler<Route extends string, Dto> {
+  (
+    request: Request<RouteParameters<Route>, any, Dto>,
+    response: Response
+  ): void | Promise<void>;
 }
 
-function middleware(first: Configurator): typeof middleware {
-  const output = function (next: Configurator) {
-    return middleware((input) => {
-      first(input);
-      next(input);
-    });
-  };
-
-  output.toString = function () {
-    const seed = {};
-    first(seed);
-    return JSON.stringify(seed);
-  };
-
-  return output;
+interface ControllerBuilderMethods {
+  Post<Dto>(): ControllerBuilderMetadata<Dto>;
+  Put<Dto>(): ControllerBuilderMetadata<Dto>;
+  Get(): ControllerBuilderMetadata<never>;
+  Delete(): ControllerBuilderMetadata<never>;
 }
 
-function Get(): typeof middleware & string & number {
-  return middleware((data) => {
-    data.method = 'GET';
-  }) as typeof middleware & string & number;
+interface ControllerBuilderMetadata<Dto = never> {
+  ProducesResponseType(statusCode: number): ControllerBuilderMetadata<Dto>;
+  Route<Route extends string>(
+    route: Route
+  ): ControllerBuilderRouteHandler<Route, Dto>;
 }
 
-function Post<Dto = never>(): typeof middleware & string & number {
-  return middleware(noop) as typeof middleware & string & number;
+interface ControllerBuilderRouteHandler<
+  Route extends string = '',
+  Dto = never
+> {
+  Handler(handler: Handler<Route, Dto>): ControllerBuilderMethods;
 }
 
-function Route(route: string): typeof middleware & string & number {
-  const rs = middleware((data) => {
-    data.route = route;
-  }) as typeof middleware & string & number;
-
-  return rs;
+interface RouteMetadata {
+  method: string;
+  route: string;
+  handler: Handler<any, any>;
+  validResponseCodes: number[];
 }
-
-function ProducesResponseType(
-  statusCode: number
-): typeof middleware & string & number {
-  return middleware((data) => {
-    data.producesResponseType = data.producesResponseType
-      ? [...data.producesResponseType, statusCode]
-      : [statusCode];
-  }) as typeof middleware & string & number;
-}
-
-type Handler<T extends string> = (
-  request: Request<RouteParameters<T>, any, any>,
-  response: Response
-) => void | Promise<void>;
-
-type ControllerMethodsOnly<T> = {
-  [K in keyof T]: K extends string ? Handler<K> : never;
-};
-
-type Controller = any extends infer T
-  ? ControllerMethodsOnly<T> extends T
-    ? ControllerMethodsOnly<T>
-    : never
-  : never;
 
 //#endregion
 
-function TodoControllerFactory(application: Application): Controller {
-  return {
-    async [Post<CreateTodo>()
-      .ProducesResponseType(201)
-      .ProducesResponseType(400)
-      .Route('/todos')](request, response) {
-      const createTodo = request.body;
-      application.createTodo({
-        type: 'CreateTodo',
-        ...createTodo,
-        key: '',
-      });
-      response.sendStatus(202);
-    },
+class ControllerBuilder<Route extends string = '', Dto = never>
+  implements
+    ControllerBuilderMetadata<Dto>,
+    ControllerBuilderRouteHandler<Route, Dto>
+{
+  #routes: RouteMetadata[] = [];
+  #current: Partial<RouteMetadata> = {};
 
-    async [[Get()][Route('/')]](request, response) {
-      response.send(application.getAllTodos());
-    },
+  #initializeCurrent() {
+    this.#current = {
+      validResponseCodes: [],
+    };
+  }
 
-    async [`{
-    ${Get()}
-    ${ProducesResponseType(200)}
-    ${ProducesResponseType(404)}
-    ${Route('/todos/foo')}
-    }`](request, response) {},
+  /**
+   * Sets the handler method to 'POST' and types `request.body` as `typeof Dto`
+   * @returns @this
+   */
+  Post<Dto>(): ControllerBuilderMetadata<Dto> {
+    this.#current.method = 'POST';
+    return this as unknown as ControllerBuilderMetadata<Dto>;
+  }
 
-    async [Get()(ProducesResponseType(200))(ProducesResponseType(400))(
-      ProducesResponseType(404)
-    )(Route('/todos/:id'))](request, response) {
-      response.send(application.getAllTodos());
-    },
-  };
+  /**
+   * Sets the handler method to 'PUT' and types `request.body` as `typeof Dto`
+   * @returns @this
+   */
+  Put<Dto>(): ControllerBuilderMetadata<Dto> {
+    this.#current.method = 'PUT';
+    return this as unknown as ControllerBuilderMetadata<Dto>;
+  }
+
+  /**
+   * Sets the handler method to 'GET' and types `request.body` as `never`
+   * @returns @this
+   */
+  Get(): ControllerBuilderMetadata<never> {
+    this.#current.method = 'GET';
+    return this as unknown as ControllerBuilderMetadata<never>;
+  }
+
+  /**
+   * Sets the handler method to 'DELETE' and types `request.body` as `never`
+   * @returns @this
+   */
+  Delete(): ControllerBuilderMetadata<never> {
+    this.#current.method = 'DELETE';
+    return this as unknown as ControllerBuilderMetadata<never>;
+  }
+
+  /**
+   * Adds @param statusCode as a valid response this endpoint may return
+   * @returns @this
+   */
+  ProducesResponseType(statusCode: number): ControllerBuilderMetadata<Dto> {
+    this.#current.validResponseCodes!.push(statusCode);
+    return this as unknown as ControllerBuilderMetadata<Dto>;
+  }
+
+  /**
+   * Sets the @param route this handler will match
+   * @returns @this
+   */
+  Route<Route extends string>(
+    route: Route
+  ): ControllerBuilderRouteHandler<Route, Dto> {
+    this.#current.route = route;
+    return this as unknown as ControllerBuilderRouteHandler<Route, Dto>;
+  }
+
+  /**
+   * Sets the @param handler this endpoint will invoke if the route matches
+   * @returns @this
+   */
+  Handler(handler: Handler<Route, Dto>): ControllerBuilderMethods {
+    this.#current.handler = handler;
+    this.#routes.push(this.#current as RouteMetadata);
+    this.#initializeCurrent();
+    return this as unknown as ControllerBuilderMethods;
+  }
+
+  /**
+   * Returns the constructed routes, clearing out the internal collection so the builder can be reused
+   * @returns @type RouteMetadata
+   */
+  Build() {
+    const result = this.#routes;
+    this.#routes = [];
+    return result;
+  }
 }
 
-export default TodoControllerFactory;
+interface ControllerFactory {
+  (...prams: any[]): (
+    builder: ControllerBuilderMethods
+  ) => ControllerBuilderMethods;
+}
 
-// TODO: make prettier config for this stuff
+const factory: ControllerFactory = (application: Application) => (builder) =>
+  builder
+    .Post<CreateTodo>()
+    .Route('/todos/:id')
+    .Handler(function CreateTodo(request, response) {
+      const createTodo = request.body;
+      application.createTodo({ ...createTodo, key: '', type: 'CreateTodo' });
+      response.sendStatus(202);
+    })
+    .Get()
+    .Route('/todos')
+    .Handler(function GetAllTodos(request, response) {
+      response.send(application.getAllTodos());
+    });
+
+export default factory;
