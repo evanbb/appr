@@ -2,9 +2,8 @@ import express from 'express';
 import ws from 'ws';
 import cors from 'cors';
 import bodyParser from 'body-parser';
-import TodoControllerFactory, {
-  ControllerBuilder,
-} from './rest/TodoController';
+import { ControllerBuilder } from '@appr/http';
+import TodoControllerFactory from './rest/TodoController';
 import { Application } from 'this/application';
 
 export default function presentation() {}

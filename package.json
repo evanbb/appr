@@ -8,7 +8,7 @@
   ],
   "scripts": {
     "build": "yarn workspaces foreach -pi run build",
-    "start": "yarn workspaces foreach -pi run start",
+    "start": "yarn workspaces foreach -pi -j unlimited run start",
     "test": "yarn workspaces foreach -pi run test"
   },
   "keywords": [],

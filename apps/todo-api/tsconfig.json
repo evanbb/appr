@@ -10,7 +10,7 @@
     "paths": {
       "this/application": ["application"],
       "this/domain": ["domain"],
-      "this/infrastructure": ["infrastructure"],
+      "this/infrastructure": ["infrastructure"]
     }
   },
   "exclude": ["dist", "node_modules", "../../node_modules"],

@@ -61,6 +61,7 @@ export default {
       paths: [
         path.resolve(__dirname, '../../packages/core/dist/'),
         path.resolve(__dirname, '../../packages/domain/dist/'),
+        path.resolve(__dirname, '../../packages/http/dist/'),
       ],
     }),
   ].filter(Boolean),

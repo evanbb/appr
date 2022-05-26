@@ -16,6 +16,8 @@ const application: ApplicationFactory = function application(
   dependencies?: ApplicationDependencies
 ) {};
 
+
+
 export class Application {
   readonly #commandRepo: TodoCommandRepository;
   readonly #queryRepo: TodoQueryRepository;
