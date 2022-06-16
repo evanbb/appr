@@ -23,3 +23,4 @@ const factory: ControllerFactory = (application: Application) => (builder) =>
     });
 
 export default factory;
+

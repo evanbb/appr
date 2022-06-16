@@ -11,138 +11,92 @@ export interface Handler<Route extends string, Dto> {
   ): void | Promise<void>;
 }
 
-export interface ControllerBuilderHttpMethods {
-  Post<Dto>(): ControllerBuilderMetadata<Dto>;
-  Put<Dto>(): ControllerBuilderMetadata<Dto>;
-  Get(): ControllerBuilderMetadata<never>;
-  Delete(): ControllerBuilderMetadata<never>;
+export interface HandlerBuilderMetadata {
+  ProducesResponseType(
+    statusCode: number
+  ): HandlerBuilderMetadata & HandlerBuilderHttpMethods;
+
+  // allow for more metadata attribute thingies to be added
+  [extras: string]: (
+    ...prams: any[]
+  ) => HandlerBuilderMetadata & HandlerBuilderHttpMethods;
 }
 
-export interface ControllerBuilderMetadata<Dto = never> {
-  ProducesResponseType(statusCode: number): ControllerBuilderMetadata<Dto>;
-  Route<Route extends string>(
-    route: Route
-  ): ControllerBuilderRouteHandler<Route, Dto>;
+export interface HandlerBuilderHttpMethods {
+  Post<Dto>(): HandlerBuilderRouteHandler<Dto>;
+  Put<Dto>(): HandlerBuilderRouteHandler<Dto>;
+  Get(): HandlerBuilderRouteHandler<never>;
+  Delete(): HandlerBuilderRouteHandler<never>;
 }
 
-export interface ControllerBuilderRouteHandler<
-  Route extends string = '',
-  Dto = never
-> {
-  Handler(
-    handler: Handler<Route, Dto>
-  ): ControllerBuilderHttpMethods & ControllerBuilderFinalizer;
+export interface HandlerBuilderRouteHandler<Dto = never> {
+  <Route extends string = ''>(route: Route): HandlerBuilderHandler<Route, Dto>;
 }
 
-export interface ControllerBuilderFinalizer {
-  Build(): RouteMetadata[];
+export interface HandlerBuilderHandler<Route extends string = '', Dto = never> {
+  (handler: Handler<Route, Dto>): ControllerMethodDeclarator<Route, Dto>;
 }
 
-export interface RouteMetadata {
+export interface ControllerMethodDeclarator<Route extends string, Dto> {
   method: string;
   route: string;
-  handler: Handler<any, any>;
-  validResponseCodes: number[];
+  handler: Handler<Route, Dto>;
+  metadata: HandlerMetadata;
 }
 
-export class ControllerBuilder<Route extends string = '', Dto = never>
-  implements
-    ControllerBuilderMetadata<Dto>,
-    ControllerBuilderRouteHandler<Route, Dto>,
-    ControllerBuilderFinalizer
-{
-  #routes: RouteMetadata[] = [];
-  #current: Partial<RouteMetadata> = {};
+interface HandlerMetadata {
+  validResponseCodes?: number[];
+}
 
-  #initializeCurrent() {
-    this.#current = {
-      validResponseCodes: [],
+interface CreateDto {
+  //
+  title: string;
+}
+
+const ProducesResponseType: HandlerBuilderMetadata['ProducesResponseType'] =
+  function ProducesResponseType(statusCode: number) {
+    return {
+      Delete: null as any,
+      Get: null as any,
+      Put: null as any,
+      Post: null as any,
+      ProducesResponseType: null as any,
     };
-  }
+  };
+const Post: HandlerBuilderHttpMethods['Post'] = function Post<Dto>() {
+  return <Route extends string>(route: Route) => {
+    return (handler: Handler<Route, Dto>) => {
+      return {
+        handler,
+        metadata: {
+          //
+        },
+        method: 'POST',
+        route,
+      };
+    };
+  };
+};
 
-  /**
-   * Sets the handler method to 'POST' and types `request.body` as `typeof Dto`
-   * @returns @this
-   */
-  Post<Dto>(): ControllerBuilderMetadata<Dto> {
-    this.#current.method = 'POST';
-    return this as unknown as ControllerBuilderMetadata<Dto>;
-  }
+const Get: HandlerBuilderHttpMethods['Get'] = function Get() {
+  return <Route extends string>(route: Route) => {
+    return (handler: Handler<Route, never>) => {
+      return {
+        handler,
+        metadata: {
+          //
+        },
+        method: 'GET',
+        route,
+      };
+    };
+  };
+};
 
-  /**
-   * Sets the handler method to 'PUT' and types `request.body` as `typeof Dto`
-   * @returns @this
-   */
-  Put<Dto>(): ControllerBuilderMetadata<Dto> {
-    this.#current.method = 'PUT';
-    return this as unknown as ControllerBuilderMetadata<Dto>;
-  }
+Post<CreateDto>()('/todos/:id')(async (request, response) => {
+  //
+  request.body.title;
+  request.params.id;
+});
 
-  /**
-   * Sets the handler method to 'GET' and types `request.body` as `never`
-   * @returns @this
-   */
-  Get(): ControllerBuilderMetadata<never> {
-    this.#current.method = 'GET';
-    return this as unknown as ControllerBuilderMetadata<never>;
-  }
-
-  /**
-   * Sets the handler method to 'DELETE' and types `request.body` as `never`
-   * @returns @this
-   */
-  Delete(): ControllerBuilderMetadata<never> {
-    this.#current.method = 'DELETE';
-    return this as unknown as ControllerBuilderMetadata<never>;
-  }
-
-  /**
-   * Adds @param statusCode as a valid response this endpoint may return
-   * @returns @this
-   */
-  ProducesResponseType(statusCode: number): ControllerBuilderMetadata<Dto> {
-    this.#current.validResponseCodes!.push(statusCode);
-    return this as unknown as ControllerBuilderMetadata<Dto>;
-  }
-
-  /**
-   * Sets the @param route this handler will match
-   * @returns @this
-   */
-  Route<Route extends string>(
-    route: Route
-  ): ControllerBuilderRouteHandler<Route, Dto> {
-    this.#current.route = route;
-    return this as unknown as ControllerBuilderRouteHandler<Route, Dto>;
-  }
-
-  /**
-   * Sets the @param handler this endpoint will invoke if the route matches
-   * @returns @this
-   */
-  Handler(
-    handler: Handler<Route, Dto>
-  ): ControllerBuilderHttpMethods & ControllerBuilderFinalizer {
-    this.#current.handler = handler;
-    this.#routes.push(this.#current as RouteMetadata);
-    this.#initializeCurrent();
-    return this as unknown as ControllerBuilderHttpMethods &
-      ControllerBuilderFinalizer;
-  }
-
-  /**
-   * Returns the constructed routes, clearing out the internal collection so the builder can be reused
-   * @returns @type RouteMetadata
-   */
-  Build() {
-    const result = this.#routes;
-    this.#routes = [];
-    return result;
-  }
-}
-
-export interface ControllerFactory {
-  (...prams: any[]): (
-    builder: ControllerBuilderHttpMethods
-  ) => ControllerBuilderFinalizer;
-}
+Get()('/todos/:id')(async (request, response) => {});
