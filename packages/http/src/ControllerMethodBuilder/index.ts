@@ -31,7 +31,7 @@ export interface RouteSetter<Dto = never> {
 }
 
 export interface HttpMethodSetterRegistry {
-  [extras: string]: unknown;
+  [extras: string]: (<Dto>() => RouteSetter<Dto>) | (() => RouteSetter<never>);
 }
 
 export interface HttpMethodSetterRegistry {
@@ -80,7 +80,7 @@ function handlerSetterFactory<Route extends string = '', Dto = never>(
   };
 }
 
-function routeSetterFactory<Dto>(
+export function routeSetterFactory<Dto>(
   method: KnownKeysOf<HttpMethodSetterRegistry>
 ) {
   return function <Route extends string = ''>(route: Route) {
@@ -88,16 +88,16 @@ function routeSetterFactory<Dto>(
   };
 }
 
-const Get: HttpMethodSetterRegistry['Get'] = () =>
+export const Get: HttpMethodSetterRegistry['Get'] = () =>
   routeSetterFactory<never>('Get');
 
-const Post: HttpMethodSetterRegistry['Post'] = <Dto>() =>
+export const Post: HttpMethodSetterRegistry['Post'] = <Dto>() =>
   routeSetterFactory<Dto>('Post');
 
-const Delete: HttpMethodSetterRegistry['Delete'] = () =>
+export const Delete: HttpMethodSetterRegistry['Delete'] = () =>
   routeSetterFactory<never>('Delete');
 
-const Put: HttpMethodSetterRegistry['Put'] = <Dto>() =>
+export const Put: HttpMethodSetterRegistry['Put'] = <Dto>() =>
   routeSetterFactory<Dto>('Put');
 
 const httpMethodSetterRegistrations = new Map<
@@ -116,9 +116,35 @@ function getHttpMethodSetters() {
   return Array.from(httpMethodSetterRegistrations.entries()).reduce(
     (agg, curr) => ({
       ...agg,
-      [curr[0]]: curr[1],
+      [curr[0]]: curr[1] as
+        | (<Dto>() => RouteSetter<Dto>)
+        | (() => RouteSetter<never>),
     }),
     {} as HttpMethodSetterRegistry
+  );
+}
+
+const metadataSetterRegistrations = new Map<
+  KnownKeysOf<MetadataSetterRegistry>,
+  unknown
+>();
+
+function registerMetadataSetter<Impl>(
+  key: KnownKeysOf<MetadataSetterRegistry>,
+  impl: Impl
+) {
+  metadataSetterRegistrations.set(key, impl);
+}
+
+function getMetadataSetters() {
+  return Array.from(metadataSetterRegistrations.entries()).reduce(
+    (agg, curr) => ({
+      ...agg,
+      [curr[0]]: curr[1] as (
+        ...prams: any[]
+      ) => MetadataSetters & HttpMethodSetterFactories,
+    }),
+    {} as MetadataSetterRegistry
   );
 }
 
