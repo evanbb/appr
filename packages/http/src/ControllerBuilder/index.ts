@@ -11,32 +11,6 @@ export interface Handler<Route extends string, Dto> {
   ): void | Promise<void>;
 }
 
-export interface HandlerBuilderMetadata {
-  ProducesResponseType(
-    statusCode: number
-  ): HandlerBuilderMetadata & HandlerBuilderHttpMethods;
-
-  // allow for more metadata attribute thingies to be added
-  [extras: string]: (
-    ...prams: any[]
-  ) => HandlerBuilderMetadata & HandlerBuilderHttpMethods;
-}
-
-export interface HandlerBuilderHttpMethods {
-  Post<Dto>(): HandlerBuilderRouteHandler<Dto>;
-  Put<Dto>(): HandlerBuilderRouteHandler<Dto>;
-  Get(): HandlerBuilderRouteHandler<never>;
-  Delete(): HandlerBuilderRouteHandler<never>;
-}
-
-export interface HandlerBuilderRouteHandler<Dto = never> {
-  <Route extends string = ''>(route: Route): HandlerBuilderHandler<Route, Dto>;
-}
-
-export interface HandlerBuilderHandler<Route extends string = '', Dto = never> {
-  (handler: Handler<Route, Dto>): ControllerMethodDeclarator<Route, Dto>;
-}
-
 export interface ControllerMethodDeclarator<Route extends string, Dto> {
   method: string;
   route: string;
@@ -48,13 +22,67 @@ interface HandlerMetadata {
   validResponseCodes?: number[];
 }
 
+export interface HandlerBuilderHandlerFactory<
+  Route extends string = '',
+  Dto = never
+> {
+  (handler: Handler<Route, Dto>): ControllerMethodDeclarator<Route, Dto>;
+}
+
+export interface HandlerBuilderRouteHandlerFactory<Dto = never> {
+  <Route extends string = ''>(route: Route): HandlerBuilderHandlerFactory<
+    Route,
+    Dto
+  >;
+}
+
+export interface HandlerBuilderHttpMethodFactoryRegistry {
+  [extras: string]: unknown;
+}
+
+export interface HandlerBuilderHttpMethodFactoryRegistry {
+  Get(): HandlerBuilderRouteHandlerFactory<never>;
+  // Post<Dto>(): HandlerBuilderRouteHandlerFactory<Dto>;
+  // Put<Dto>(): HandlerBuilderRouteHandlerFactory<Dto>;
+  // Delete(): HandlerBuilderRouteHandlerFactory<never>;
+}
+
+export type HandlerBuilderHttpMethodFactories = {
+  [K in keyof HandlerBuilderHttpMethodFactoryRegistry as string extends K
+    ? never
+    : number extends K
+    ? never
+    : K]: HandlerBuilderHttpMethodFactoryRegistry[K];
+};
+
+export interface HandlerBuilderMetadataFactoryRegistry {
+  // allow for more metadata attribute thingies to be added
+  [extras: string]: (
+    ...prams: any[]
+  ) => HandlerBuilderMetadataFactories & HandlerBuilderHttpMethodFactories;
+}
+
+export interface HandlerBuilderMetadataFactoryRegistry {
+  ProducesResponseType(
+    statusCode: number
+  ): HandlerBuilderMetadataFactories & HandlerBuilderHttpMethodFactories;
+}
+
+export type HandlerBuilderMetadataFactories = {
+  [K in keyof HandlerBuilderMetadataFactoryRegistry as string extends K
+    ? never
+    : number extends K
+    ? never
+    : K]: HandlerBuilderMetadataFactoryRegistry[K];
+};
+
 interface CreateDto {
   //
   title: string;
 }
 
-const ProducesResponseType: HandlerBuilderMetadata['ProducesResponseType'] =
-  function ProducesResponseType(statusCode: number) {
+const ProducesResponseTypep: HandlerBuilderMetadataFactories['ProducesResponseType'] =
+  function ProducesResponseTypep(statusCode: number) {
     return {
       Delete: null as any,
       Get: null as any,
@@ -63,7 +91,8 @@ const ProducesResponseType: HandlerBuilderMetadata['ProducesResponseType'] =
       ProducesResponseType: null as any,
     };
   };
-const Post: HandlerBuilderHttpMethods['Post'] = function Post<Dto>() {
+
+const Postp: HandlerBuilderHttpMethodFactories['Post'] = function Postp<Dto>() {
   return <Route extends string>(route: Route) => {
     return (handler: Handler<Route, Dto>) => {
       return {
@@ -78,7 +107,7 @@ const Post: HandlerBuilderHttpMethods['Post'] = function Post<Dto>() {
   };
 };
 
-const Get: HandlerBuilderHttpMethods['Get'] = function Get() {
+const Getp: HandlerBuilderHttpMethodFactories['Get'] = function Getp() {
   return <Route extends string>(route: Route) => {
     return (handler: Handler<Route, never>) => {
       return {
@@ -93,10 +122,22 @@ const Get: HandlerBuilderHttpMethods['Get'] = function Get() {
   };
 };
 
-Post<CreateDto>()('/todos/:id')(async (request, response) => {
-  //
-  request.body.title;
-  request.params.id;
-});
+const Get: HandlerBuilderHttpMethodFactoryRegistry['Get'] =
+  () =>
+  <Route extends string>(route: Route) =>
+  (handler: Handler<Route, never>) => ({
+    route,
+    handler,
+    metadata: {},
+    method: 'GET',
+  });
 
-Get()('/todos/:id')(async (request, response) => {});
+ProducesResponseTypep(21).ProducesResponseType(33).Get()('/todos/:id')(
+  async (request, response) => {
+    //
+    request.body.title;
+    request.params.id;
+  }
+);
+
+Getp()('/todos/:id')(async (request, response) => {});
