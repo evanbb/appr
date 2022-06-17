@@ -42,17 +42,17 @@ export interface HandlerBuilderHttpMethodFactoryRegistry {
 
 export interface HandlerBuilderHttpMethodFactoryRegistry {
   Get(): HandlerBuilderRouteHandlerFactory<never>;
-  // Post<Dto>(): HandlerBuilderRouteHandlerFactory<Dto>;
-  // Put<Dto>(): HandlerBuilderRouteHandlerFactory<Dto>;
-  // Delete(): HandlerBuilderRouteHandlerFactory<never>;
+  Post<Dto>(): HandlerBuilderRouteHandlerFactory<Dto>;
+  Delete(): HandlerBuilderRouteHandlerFactory<never>;
+  Put<Dto>(): HandlerBuilderRouteHandlerFactory<Dto>;
 }
 
+type KnownKeysOf<T> = keyof {
+  [K in keyof T as string extends K ? never : number extends K ? never : K]: K;
+};
+
 export type HandlerBuilderHttpMethodFactories = {
-  [K in keyof HandlerBuilderHttpMethodFactoryRegistry as string extends K
-    ? never
-    : number extends K
-    ? never
-    : K]: HandlerBuilderHttpMethodFactoryRegistry[K];
+  [K in KnownKeysOf<HandlerBuilderHttpMethodFactoryRegistry>]: HandlerBuilderHttpMethodFactoryRegistry[K];
 };
 
 export interface HandlerBuilderMetadataFactoryRegistry {
@@ -69,75 +69,44 @@ export interface HandlerBuilderMetadataFactoryRegistry {
 }
 
 export type HandlerBuilderMetadataFactories = {
-  [K in keyof HandlerBuilderMetadataFactoryRegistry as string extends K
-    ? never
-    : number extends K
-    ? never
-    : K]: HandlerBuilderMetadataFactoryRegistry[K];
+  [K in KnownKeysOf<HandlerBuilderMetadataFactoryRegistry>]: HandlerBuilderMetadataFactoryRegistry[K];
 };
+
+function HandlerInternal<Route extends string = '', Dto = never>(
+  route: Route,
+  method: KnownKeysOf<HandlerBuilderHttpMethodFactoryRegistry>
+) {
+  return function HandlerInternal(handler: Handler<Route, Dto>) {
+    return {
+      route,
+      handler,
+      metadata: {},
+      method,
+    };
+  };
+}
+
+function RouteInternal<Dto>(
+  method: KnownKeysOf<HandlerBuilderHttpMethodFactoryRegistry>
+) {
+  return function RouteInternal<Route extends string = ''>(route: Route) {
+    return HandlerInternal<Route, Dto>(route, method);
+  };
+}
+
+const Get: HandlerBuilderHttpMethodFactoryRegistry['Get'] = () =>
+  RouteInternal<never>('Get');
+
+const Post: HandlerBuilderHttpMethodFactoryRegistry['Post'] = <Dto>() =>
+  RouteInternal<Dto>('Post');
+
+const Delete: HandlerBuilderHttpMethodFactoryRegistry['Delete'] = () =>
+  RouteInternal<never>('Delete');
+
+const Put: HandlerBuilderHttpMethodFactoryRegistry['Put'] = <Dto>() =>
+  RouteInternal<Dto>('Put');
 
 interface CreateDto {
   //
   title: string;
 }
-
-const ProducesResponseTypep: HandlerBuilderMetadataFactories['ProducesResponseType'] =
-  function ProducesResponseTypep(statusCode: number) {
-    return {
-      Delete: null as any,
-      Get: null as any,
-      Put: null as any,
-      Post: null as any,
-      ProducesResponseType: null as any,
-    };
-  };
-
-const Postp: HandlerBuilderHttpMethodFactories['Post'] = function Postp<Dto>() {
-  return <Route extends string>(route: Route) => {
-    return (handler: Handler<Route, Dto>) => {
-      return {
-        handler,
-        metadata: {
-          //
-        },
-        method: 'POST',
-        route,
-      };
-    };
-  };
-};
-
-const Getp: HandlerBuilderHttpMethodFactories['Get'] = function Getp() {
-  return <Route extends string>(route: Route) => {
-    return (handler: Handler<Route, never>) => {
-      return {
-        handler,
-        metadata: {
-          //
-        },
-        method: 'GET',
-        route,
-      };
-    };
-  };
-};
-
-const Get: HandlerBuilderHttpMethodFactoryRegistry['Get'] =
-  () =>
-  <Route extends string>(route: Route) =>
-  (handler: Handler<Route, never>) => ({
-    route,
-    handler,
-    metadata: {},
-    method: 'GET',
-  });
-
-ProducesResponseTypep(21).ProducesResponseType(33).Get()('/todos/:id')(
-  async (request, response) => {
-    //
-    request.body.title;
-    request.params.id;
-  }
-);
-
-Getp()('/todos/:id')(async (request, response) => {});
