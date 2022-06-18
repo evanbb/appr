@@ -1,7 +1,7 @@
 // #region junk
 import { Application } from 'this/application';
 import { type CreateTodoRequest } from 'this/infrastructure';
-import { Post, Get, ProducesResponseType } from '@appr/http';
+import { ProducesResponseType } from '@appr/http';
 
 const factory = (application: Application) => ({
   createTodo: ProducesResponseType(200)
