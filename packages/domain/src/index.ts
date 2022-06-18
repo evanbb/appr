@@ -1,3 +1,13 @@
-import { foobar } from '@appr/core';
+import type { KnownKeysOf } from '@appr/core';
 
-export default `i am the domain, and foobar is ${foobar}`;
+interface AggregateRoot<Identifier> {
+  get id(): Identifier;
+}
+
+interface Entity<Identifier> {
+  get id(): Identifier;
+}
+
+abstract class ValueObject {
+    
+}

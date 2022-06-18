@@ -173,7 +173,9 @@ function getMetadataSetters() {
   );
 }
 
-interface CreateDto {
-  //
-  title: string;
-}
+registerHttpMethodSetter('Get', Get);
+registerHttpMethodSetter('Post', Post);
+registerHttpMethodSetter('Put', Put);
+registerHttpMethodSetter('Delete', Delete);
+
+registerMetadataSetter('ProducesResponseType', ProducesResponseType);
