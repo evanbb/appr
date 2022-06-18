@@ -2,7 +2,6 @@ import express from 'express';
 import ws from 'ws';
 import cors from 'cors';
 import bodyParser from 'body-parser';
-import { ControllerBuilder } from '@appr/http';
 import TodoControllerFactory from './rest/TodoController';
 import { Application } from 'this/application';
 
@@ -20,11 +19,9 @@ export class Presentation {
     expressApp.use(cors());
     expressApp.use(bodyParser.json());
 
-    const routeMetas = TodoControllerFactory(todoApp)(
-      new ControllerBuilder()
-    ).Build();
+    const controller = TodoControllerFactory(todoApp);
 
-    for (const routeMeta of routeMetas) {
+    for (const routeMeta of Object.values(controller)) {
       const { handler, method, route } = routeMeta;
       (expressApp as any)[method.toLowerCase()](route, handler);
     }
