@@ -18,8 +18,8 @@ export interface ControllerMethodDeclarator<Route extends string, Dto> {
   metadata: HandlerMetadata;
 }
 
-interface HandlerMetadata {
-  validResponseCodes?: number[];
+export interface HandlerMetadata {
+  validResponseCodes?: Set<number>;
 }
 
 export interface HandlerSetter<Route extends string = '', Dto = never> {
@@ -99,6 +99,31 @@ export const Delete: HttpMethodSetterRegistry['Delete'] = () =>
 
 export const Put: HttpMethodSetterRegistry['Put'] = <Dto>() =>
   routeSetterFactory<Dto>('Put');
+
+interface MetadataConfigurator {
+  (metadata: HandlerMetadata): void;
+}
+
+export function metadataMiddlewareFactory(
+  configurator: MetadataConfigurator
+): MetadataSetters & HttpMethodSetterFactories {
+  const methodSetters = getHttpMethodSetters();
+  const metadataSetters = getMetadataSetters();
+
+  return {
+    ...methodSetters,
+    ...metadataSetters,
+  };
+}
+
+export const ProducesResponseType: MetadataSetterRegistry['ProducesResponseType'] =
+  (statusCode: number) =>
+    metadataMiddlewareFactory((metadata) => {
+      metadata.validResponseCodes =
+        metadata.validResponseCodes || new Set<number>();
+
+      metadata.validResponseCodes.add(statusCode);
+    });
 
 const httpMethodSetterRegistrations = new Map<
   KnownKeysOf<HttpMethodSetterRegistry>,
