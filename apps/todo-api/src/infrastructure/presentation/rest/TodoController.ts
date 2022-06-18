@@ -1,4 +1,3 @@
-// #region junk
 import { Application } from 'this/application';
 import { type CreateTodoRequest } from 'this/infrastructure';
 import { ProducesResponseType } from '@appr/http';
