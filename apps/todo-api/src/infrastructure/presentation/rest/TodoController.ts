@@ -17,10 +17,11 @@ const factory = (application: Application) => ({
     });
     response.sendStatus(202);
   }),
+
   getTodos: ProducesResponseType(200)
     .ProducesResponseType(401)
     .ProducesResponseType(403)
-    .Get()('/todos')((request, response) => {
+    .Get()('/todos')((_, response) => {
     response.send(application.getAllTodos());
   }),
 });

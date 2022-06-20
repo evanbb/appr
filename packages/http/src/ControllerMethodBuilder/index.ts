@@ -51,19 +51,21 @@ export type HttpMethodSetterFactories = {
 
 export interface MetadataSetterRegistry {
   // allow for more metadata attribute thingies to be added
-  [extras: string]: (
-    ...prams: any[]
-  ) => MetadataSetters & HttpMethodSetterFactories;
+  [extras: string]: (...prams: any[]) => MetadataConfigurator;
 }
 
 export interface MetadataSetterRegistry {
-  ProducesResponseType(
-    statusCode: number
-  ): MetadataSetters & HttpMethodSetterFactories;
+  ProducesResponseType(statusCode: number): MetadataConfigurator;
 }
 
 export type MetadataSetters = {
   [K in KnownKeysOf<MetadataSetterRegistry>]: MetadataSetterRegistry[K];
+};
+
+export type MetadataSetterMiddleware = {
+  [K in KnownKeysOf<MetadataSetterRegistry>]: (
+    ...input: Parameters<MetadataSetterRegistry[K]>
+  ) => MetadataSetterMiddleware & HttpMethodSetterFactories;
 };
 
 function handlerSetterFactory<Route extends string = '', Dto = never>(
@@ -88,17 +90,12 @@ export function routeSetterFactory<Dto>(
   };
 }
 
-export const Get: HttpMethodSetterRegistry['Get'] = () =>
-  routeSetterFactory<never>('Get');
-
-export const Post: HttpMethodSetterRegistry['Post'] = <Dto>() =>
-  routeSetterFactory<Dto>('Post');
-
-export const Delete: HttpMethodSetterRegistry['Delete'] = () =>
-  routeSetterFactory<never>('Delete');
-
-export const Put: HttpMethodSetterRegistry['Put'] = <Dto>() =>
-  routeSetterFactory<Dto>('Put');
+interface DeclaratorMiddleware<Route extends string, Dto> {
+  (
+    metadata: ControllerMethodDeclarator<Route, Dto>,
+    next: (metadata: ControllerMethodDeclarator<Route, Dto>) => void
+  ): void;
+}
 
 interface MetadataConfigurator {
   (metadata: HandlerMetadata): void;
@@ -106,7 +103,7 @@ interface MetadataConfigurator {
 
 export function metadataMiddlewareFactory(
   configurator: MetadataConfigurator
-): MetadataSetters & HttpMethodSetterFactories {
+): MetadataSetterMiddleware & HttpMethodSetterFactories {
   const methodSetters = getHttpMethodSetters();
   const metadataSetters = getMetadataSetters();
 
@@ -116,25 +113,17 @@ export function metadataMiddlewareFactory(
   };
 }
 
-export const ProducesResponseType: MetadataSetterRegistry['ProducesResponseType'] =
-  (statusCode: number) =>
-    metadataMiddlewareFactory((metadata) => {
-      metadata.validResponseCodes =
-        metadata.validResponseCodes || new Set<number>();
-
-      metadata.validResponseCodes.add(statusCode);
-    });
-
 const httpMethodSetterRegistrations = new Map<
   KnownKeysOf<HttpMethodSetterRegistry>,
   unknown
 >();
 
-function registerHttpMethodSetter<Impl>(
-  key: KnownKeysOf<HttpMethodSetterRegistry>,
-  impl: Impl
-) {
+function registerHttpMethodSetter<
+  Key extends KnownKeysOf<HttpMethodSetterRegistry>
+>(key: Key): HttpMethodSetterRegistry[Key] {
+  const impl = () => routeSetterFactory<never>(key);
   httpMethodSetterRegistrations.set(key, impl);
+  return impl as HttpMethodSetterRegistry[Key];
 }
 
 function getHttpMethodSetters() {
@@ -154,11 +143,18 @@ const metadataSetterRegistrations = new Map<
   unknown
 >();
 
-function registerMetadataSetter<Impl>(
-  key: KnownKeysOf<MetadataSetterRegistry>,
-  impl: Impl
-) {
+function registerMetadataSetter<
+  Key extends KnownKeysOf<MetadataSetterRegistry>
+>(
+  key: Key,
+  implementation: MetadataSetterRegistry[Key]
+): MetadataSetterMiddleware[Key] {
+  const impl = ((...prams: Parameters<MetadataSetterRegistry[Key]>) => {
+    const metadataSetter = implementation.apply(undefined, prams);
+    return metadataMiddlewareFactory(metadataSetter);
+  }) as MetadataSetterMiddleware[Key];
   metadataSetterRegistrations.set(key, impl);
+  return impl;
 }
 
 function getMetadataSetters() {
@@ -167,15 +163,22 @@ function getMetadataSetters() {
       ...agg,
       [curr[0]]: curr[1] as (
         ...prams: any[]
-      ) => MetadataSetters & HttpMethodSetterFactories,
+      ) => MetadataSetterMiddleware & HttpMethodSetterFactories,
     }),
-    {} as MetadataSetterRegistry
+    {} as MetadataSetterMiddleware & HttpMethodSetterFactories
   );
 }
 
-registerHttpMethodSetter('Get', Get);
-registerHttpMethodSetter('Post', Post);
-registerHttpMethodSetter('Put', Put);
-registerHttpMethodSetter('Delete', Delete);
+export const Get = registerHttpMethodSetter('Get');
+export const Post = registerHttpMethodSetter('Post');
+export const Put = registerHttpMethodSetter('Put');
+export const Delete = registerHttpMethodSetter('Delete');
 
-registerMetadataSetter('ProducesResponseType', ProducesResponseType);
+export const ProducesResponseType = registerMetadataSetter(
+  'ProducesResponseType',
+  (statusCode: number) => (metadata: HandlerMetadata) => {
+    metadata.validResponseCodes =
+      metadata.validResponseCodes || new Set<number>();
+    metadata.validResponseCodes.add(statusCode);
+  }
+);
