@@ -11,7 +11,7 @@ export interface Handler<Route extends string, Dto> {
   ): void | Promise<void>;
 }
 
-export interface ControllerMethodDeclarator<Route extends string, Dto> {
+export interface ControllerMethodDescriptor<Route extends string, Dto> {
   method: string;
   route: string;
   handler: Handler<Route, Dto>;
@@ -22,23 +22,24 @@ export interface HandlerMetadata {
   validResponseCodes?: Set<number>;
 }
 
-export interface HandlerSetter<Route extends string = '', Dto = never> {
-  (handler: Handler<Route, Dto>): ControllerMethodDeclarator<Route, Dto>;
+export interface HandlerSetter<Route extends string, Dto> {
+  (handler: Handler<Route, Dto>): ControllerMethodDescriptor<Route, Dto>;
 }
 
-export interface RouteSetter<Dto = never> {
-  <Route extends string = ''>(route: Route): HandlerSetter<Route, Dto>;
-}
-
-export interface HttpMethodSetterRegistry {
-  [extras: string]: (<Dto>() => RouteSetter<Dto>) | (() => RouteSetter<never>);
+export interface RouteSetter<Dto> {
+  <Route extends string>(route: Route): HandlerSetter<Route, Dto>;
 }
 
 export interface HttpMethodSetterRegistry {
   Get(): RouteSetter<never>;
+  Head(): RouteSetter<never>;
   Post<Dto>(): RouteSetter<Dto>;
   Delete(): RouteSetter<never>;
   Put<Dto>(): RouteSetter<Dto>;
+  Connect(): RouteSetter<never>;
+  Options(): RouteSetter<never>;
+  Trace(): RouteSetter<never>;
+  Patch<Dto>(): RouteSetter<Dto>;
 }
 
 type KnownKeysOf<T> = keyof {
@@ -68,9 +69,9 @@ export type MetadataSetterMiddleware = {
   ) => MetadataSetterMiddleware & HttpMethodSetterFactories;
 };
 
-function handlerSetterFactory<Route extends string = '', Dto = never>(
+function handlerSetterFactory<Route extends string, Dto>(
   route: Route,
-  method: KnownKeysOf<HttpMethodSetterRegistry>
+  method: Uppercase<KnownKeysOf<HttpMethodSetterRegistry>>
 ) {
   return function (handler: Handler<Route, Dto>) {
     return {
@@ -83,17 +84,17 @@ function handlerSetterFactory<Route extends string = '', Dto = never>(
 }
 
 export function routeSetterFactory<Dto>(
-  method: KnownKeysOf<HttpMethodSetterRegistry>
+  method: Uppercase<KnownKeysOf<HttpMethodSetterRegistry>>
 ) {
-  return function <Route extends string = ''>(route: Route) {
+  return function <Route extends string>(route: Route) {
     return handlerSetterFactory<Route, Dto>(route, method);
   };
 }
 
 interface DeclaratorMiddleware<Route extends string, Dto> {
   (
-    metadata: ControllerMethodDeclarator<Route, Dto>,
-    next: (metadata: ControllerMethodDeclarator<Route, Dto>) => void
+    metadata: ControllerMethodDescriptor<Route, Dto>,
+    next: (metadata: ControllerMethodDescriptor<Route, Dto>) => void
   ): void;
 }
 
@@ -118,10 +119,11 @@ const httpMethodSetterRegistrations = new Map<
   unknown
 >();
 
-function registerHttpMethodSetter<
+export function registerHttpMethod<
   Key extends KnownKeysOf<HttpMethodSetterRegistry>
 >(key: Key): HttpMethodSetterRegistry[Key] {
-  const impl = () => routeSetterFactory<never>(key);
+  const method = key.toUpperCase() as Uppercase<Key>;
+  const impl = () => routeSetterFactory<never>(method);
   httpMethodSetterRegistrations.set(key, impl);
   return impl as HttpMethodSetterRegistry[Key];
 }
@@ -143,7 +145,7 @@ const metadataSetterRegistrations = new Map<
   unknown
 >();
 
-function registerMetadataSetter<
+export function registerMetadataSetter<
   Key extends KnownKeysOf<MetadataSetterRegistry>
 >(
   key: Key,
@@ -169,16 +171,12 @@ function getMetadataSetters() {
   );
 }
 
-export const Get = registerHttpMethodSetter('Get');
-export const Post = registerHttpMethodSetter('Post');
-export const Put = registerHttpMethodSetter('Put');
-export const Delete = registerHttpMethodSetter('Delete');
-
-export const ProducesResponseType = registerMetadataSetter(
-  'ProducesResponseType',
-  (statusCode: number) => (metadata: HandlerMetadata) => {
-    metadata.validResponseCodes =
-      metadata.validResponseCodes || new Set<number>();
-    metadata.validResponseCodes.add(statusCode);
-  }
-);
+export const Get = registerHttpMethod('Get');
+export const Head = registerHttpMethod('Head');
+export const Post = registerHttpMethod('Post');
+export const Put = registerHttpMethod('Put');
+export const Delete = registerHttpMethod('Delete');
+export const Connect = registerHttpMethod('Connect');
+export const Options = registerHttpMethod('Options');
+export const Trace = registerHttpMethod('Trace');
+export const Patch = registerHttpMethod('Patch');
