@@ -1,3 +1,4 @@
+import { type EveryMemberOfTheThingIsOfThisType } from '@appr/core';
 import {
   type Request,
   type Response,
@@ -12,7 +13,7 @@ export interface Handler<Route extends string, Dto> {
 }
 
 export interface ControllerMethodDescriptor<Route extends string, Dto> {
-  method: string;
+  method: Uppercase<KnownKeysOf<HttpMethodSetterRegistry>>;
   route: string;
   handler: Handler<Route, Dto>;
   metadata: HandlerMetadata;
@@ -180,3 +181,55 @@ export const Connect = registerHttpMethod('Connect');
 export const Options = registerHttpMethod('Options');
 export const Trace = registerHttpMethod('Trace');
 export const Patch = registerHttpMethod('Patch');
+
+export type EveryMemberOfTheThingIsOfThisType2<TheThing, ThisType> = {
+  [K in keyof TheThing]: K extends string
+    ? TheThing[K] extends ThisType
+      ? ThisType
+      : never
+    : never;
+} extends TheThing
+  ? TheThing
+  : never;
+
+type EveryPropertyInThingExtendsOther<Thing, Other> = {
+  [K in keyof Thing]: K extends string
+    ? Thing[K] extends Other
+      ? Other
+      : never
+    : never;
+};
+
+type Controller = any extends infer T
+  ? EveryPropertyInThingExtendsOther<
+      T,
+      ControllerMethodDescriptor<string, any>
+    > extends infer Q
+    ? Q extends T
+      ? Q
+      : never
+    : never
+  : never;
+
+export interface ControllerFactory {
+  (...prams: any[]): Controller;
+}
+
+const am: ControllerMethodDescriptor<string, any> = {
+  handler: () => {},
+  metadata: {},
+  method: 'GET',
+  route: '',
+};
+
+const F: ControllerFactory = () => ({
+  bar: am,
+});
+
+const X: Controller = {
+  bar: am.toString(),
+};
+
+const Y: Controller = {
+  bar: am,
+};
