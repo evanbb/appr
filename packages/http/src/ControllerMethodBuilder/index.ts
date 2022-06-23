@@ -1,4 +1,4 @@
-import { type EveryMemberOfTheThingIsOfThisType } from '@appr/core';
+import { type Bag } from '@appr/core';
 import {
   type Request,
   type Response,
@@ -182,74 +182,8 @@ export const Options = registerHttpMethod('Options');
 export const Trace = registerHttpMethod('Trace');
 export const Patch = registerHttpMethod('Patch');
 
-export type EveryMemberOfTheThingIsOfThisType2<TheThing, ThisType> = {
-  [K in keyof TheThing]: K extends string
-    ? TheThing[K] extends ThisType
-      ? ThisType
-      : never
-    : never;
-} extends TheThing
-  ? TheThing
-  : never;
-
-type EveryPropertyInThingExtendsOther<Thing, Other> = {
-  [K in keyof Thing]: K extends string
-    ? Thing[K] extends Other
-      ? Other
-      : never
-    : never;
-} extends infer P
-  ? P extends Thing
-    ? Thing extends P
-      ? P
-      : never
-    : never
-  : never;
-
-type BagOf<T> = any extends infer Q
-  ? EveryPropertyInThingExtendsOther<Q, T>
-  : never;
-
-type BagOfStrings = BagOf<number>;
-
-interface FA extends BagOfStrings {
-  foo: 4231
-}
-
-declare const FAA: FA
-
-FAA.foop.toExponential(321)
-
-type Controller = any extends infer T
-  ? EveryPropertyInThingExtendsOther<
-      T,
-      ControllerMethodDescriptor<string, any>
-    > extends infer Q
-    ? Q extends T
-      ? Q
-      : never
-    : never
-  : never;
+export type Controller = Bag<ControllerMethodDescriptor<string, any>>;
 
 export interface ControllerFactory {
   (...prams: any[]): Controller;
 }
-
-const am: ControllerMethodDescriptor<string, any> = {
-  handler: () => {},
-  metadata: {},
-  method: 'GET',
-  route: '',
-};
-
-const F: ControllerFactory = () => ({
-  bar: am,
-});
-
-const X: Controller = {
-  bar: am.toString(),
-};
-
-const Y: Controller = {
-  bar: am,
-};
