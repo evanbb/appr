@@ -198,7 +198,27 @@ type EveryPropertyInThingExtendsOther<Thing, Other> = {
       ? Other
       : never
     : never;
-};
+} extends infer P
+  ? P extends Thing
+    ? Thing extends P
+      ? P
+      : never
+    : never
+  : never;
+
+type BagOf<T> = any extends infer Q
+  ? EveryPropertyInThingExtendsOther<Q, T>
+  : never;
+
+type BagOfStrings = BagOf<number>;
+
+interface FA extends BagOfStrings {
+  foo: 4231
+}
+
+declare const FAA: FA
+
+FAA.foop.toExponential(321)
 
 type Controller = any extends infer T
   ? EveryPropertyInThingExtendsOther<
