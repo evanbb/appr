@@ -1,4 +1,4 @@
-import { type Bag } from '@appr/core';
+import { type Bag, type KnownKeysOf } from '@appr/core';
 import {
   type Request,
   type Response,
@@ -42,10 +42,6 @@ export interface HttpMethodSetterRegistry {
   Trace(): RouteSetter<never>;
   Patch<Dto>(): RouteSetter<Dto>;
 }
-
-type KnownKeysOf<T> = keyof {
-  [K in keyof T as string extends K ? never : number extends K ? never : K]: K;
-};
 
 export type HttpMethodSetterFactories = {
   [K in KnownKeysOf<HttpMethodSetterRegistry>]: HttpMethodSetterRegistry[K];
