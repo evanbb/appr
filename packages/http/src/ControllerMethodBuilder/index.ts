@@ -91,7 +91,7 @@ export function routeSetterFactory<Dto>(
 interface DeclaratorMiddleware<Route extends string, Dto> {
   (
     metadata: ControllerMethodDescriptor<Route, Dto>,
-    next: (metadata: ControllerMethodDescriptor<Route, Dto>) => void
+    next: DeclaratorMiddleware<Route, Dto>
   ): void;
 }
 
